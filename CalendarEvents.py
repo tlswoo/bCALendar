@@ -6,6 +6,7 @@ import re
 from googleapiclient.discovery import build
 from httplib2 import Http
 from oauth2client import file, client, tools
+'''
 # The imports below are for supporting local HTML file reading
 # Code from user b1r3k on StackOverflow, link to original code here: https://stackoverflow.com/a/22989322
 import os
@@ -25,31 +26,28 @@ class LocalFileAdapter(requests.adapters.HTTPAdapter):
              verify=True, cert=None, proxies=None):
 
         return self.build_response_from_file(request)
-
+'''
 
 
 
 day_dict = {'M': 'MO', 'T': 'TU', 'W': 'WE',
             'R': 'TH', 'F': 'FR', 'S': 'SA', 'U': 'SU'}
 
-comp_dict = {'LEC' : 'Lecture', 'LAB': 'Lab', 'DIS' : 'Discussion'}
+comp_dict = {'LEC' : 'Lecture', 'LAB': 'Lab', 'DIS' : 'Discussion', 'FLD' : 'Field'}
 
 class ScheduleTableReader:
     """Reads the user's classes from Schedule Planner page, from a script that displays all current section data.
     Stores each class as a Class object in a list.
     """
 
-    def __init__(self):
-        requests_session = requests.session()
-        requests_session.mount('file://', LocalFileAdapter())
-        current_page = requests_session.get('file://' + os.getcwd() + '\Schedule Planner.html')
-        self.souper = BeautifulSoup(current_page.content, 'html.parser')
+    def __init__(self, html_source):
+        self.souper = BeautifulSoup(html_source, 'html.parser')
         testreg = re.search(r'(?<=currentSectionData: )\[(.*?)\}\],\s', self.souper.get_text(), re.MULTILINE | re.DOTALL) # regex that returns the particular dictionaries we are looking for
         classlist = eval('[' + testreg.group(1).replace('true', 'True').replace('false', 'False').replace('null', 'None') + '}]') # list of all classes (each class is a dictionary)
         self.classes = {}
-        
+
         for acd_class in classlist: # acd_class is a dictionary
-            if '999' in acd_class.get('sectionNumber'):
+            if '999' in acd_class.get('sectionNumber') or acd_class['component'] == 'FLD':
                 continue
             t_course, t_title, t_comp = acd_class['subjectId'] + ' ' + acd_class['course'], acd_class['title'], acd_class['component']
             if acd_class.get('meetings'):
@@ -59,7 +57,7 @@ class ScheduleTableReader:
                 t_st_date, t_nd_date = acd_class['meetings'][0]['startDate'], acd_class['meetings'][0]['endDate']
             else:
                 t_day_str = "N/A"
-            
+
             instrs_list = acd_class.get('instructor')
             t_instrs = []
             if instrs_list:
@@ -69,7 +67,7 @@ class ScheduleTableReader:
             temp_class = Class(t_course, t_title, t_comp, t_day_str, t_time_r, t_loc, t_st_date, t_nd_date, t_instrs)
             self.classes[t_course + ' ' + t_comp] = temp_class
         print("Total Classes:", len(self.classes.keys()))
-        
+
 
 class Class:
     """Represents an academic class by storing the following information as attributes:
@@ -145,13 +143,13 @@ class Instructor:
 
     def __str__(self):
         return "Instructor name: {0}, Email: {1}, ID: {2}".format(self.name, self.email, self.id)
-    
+
 class TimeRange:
     """Represents a range of times (using datetime), with the following attributes:
         -Start time     Ex. 06:30:00
         -End time       Ex. 07:45:00
     """
-    
+
     def __init__(self, st_time, nd_time):
         str_st_time, str_nd_time = str(st_time), str(nd_time)
         if len(str_st_time) == 3: # three digit long times ex. 930
@@ -170,7 +168,7 @@ class TimeRange:
             return self.start_time.strftime('%H:%M:%S')
         else:
             return self.end_time.strftime('%H:%M:%S')
-        
+
     def __str__(self):
         return "{0} to {1}".format(self.start_time, self.end_time)
 
@@ -213,4 +211,3 @@ testerdict = {'actions': [], 'additionalData': {}, 'sectionParameterValues': {},
 'freeTextbookIndicated': 'N', 'id': '21401', 'instructionMode': 'In-Person', 'location': 'UC Berkeley Main Campus', 'lrnComTitle': None, 'notes': '', 'notesShort': '', 'partsOfTerm': 'Regular Academic Session',
 'prerequisites': '', 'registrationNumber': '21401', 'registrationType': 'E', 'requirementDesignationDescr': 'American Cultures', 'seatsCapacity': '374', 'seatsFilled': '334', 'sectionNumber': '001',
 'sectionStatus': 'OPEN', 'subject': 'Anthropology', 'subjectId': 'ANTHRO', 'textbook': '', 'title': 'INTRO SOC/CULT AC', 'topicTitle': '', 'waitlist': '15', 'waitlistOpen': '10'}
-
