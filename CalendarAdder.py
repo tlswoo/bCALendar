@@ -1,6 +1,6 @@
 from __future__ import print_function
 import sys
-sys.path.insert(0, './packages')
+sys.path.insert(0, './reqs')
 import datetime, webbrowser
 from googleapiclient.discovery import build
 from httplib2 import Http
