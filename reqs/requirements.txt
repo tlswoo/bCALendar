@@ -3,7 +3,7 @@ cryptography==3.2
 lxml==4.6.2
 Flask==1.0.2
 html5lib==1.0.1
-setuptools==40.6.3
+setuptools==65.5.1
 keyring==17.0.0
 MarkupSafe==1.1.0
 pycrypto==2.6.1
