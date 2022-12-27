@@ -4,7 +4,7 @@ keyring==17.0.0
 MarkupSafe==1.1.0
 html5lib==1.0.1
 lxml==4.6.2
-setuptools==40.6.3
+setuptools==65.5.1
 pycrypto==2.6.1
 pyOpenSSL==19.0.0
 ca_certs_locater==1.0
